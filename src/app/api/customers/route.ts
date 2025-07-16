@@ -1,40 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
 import { z } from 'zod'
-
-const createCustomerSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email address'),
-  phone: z.string().optional(),
-  company: z.string().optional(),
-  address: z.string().optional(),
-  taxId: z.string().optional(),
-})
+import { CustomerService } from '@/services/customer.service'
+import { createCustomerSchema } from '@/lib/validations/customer'
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const search = searchParams.get('search')
+    const search = searchParams.get('search') || undefined
     
-    const customers = await db.customer.findMany({
-      where: search ? {
-        OR: [
-          { name: { contains: search, mode: 'insensitive' } },
-          { email: { contains: search, mode: 'insensitive' } },
-          { company: { contains: search, mode: 'insensitive' } },
-        ]
-      } : {},
-      orderBy: {
-        createdAt: 'desc'
-      },
-      include: {
-        _count: {
-          select: {
-            invoices: true
-          }
-        }
-      }
-    })
+    const customers = await CustomerService.getCustomers(search)
 
     return NextResponse.json(customers)
   } catch (error) {
@@ -51,22 +25,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = createCustomerSchema.parse(body)
 
-    const customer = await db.customer.create({
-      data: validatedData,
-      include: {
-        _count: {
-          select: {
-            invoices: true
-          }
-        }
-      }
-    })
+    const customer = await CustomerService.createCustomer(validatedData)
 
     return NextResponse.json(customer, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
+        { error: 'Validation error', details: error.issues },
         { status: 400 }
       )
     }

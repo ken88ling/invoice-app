@@ -3,26 +3,16 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Customer, CreateCustomerData } from '@/types/customer'
+import { Customer } from '@/types/customer'
+import { customerSchema, CreateCustomerInput } from '@/lib/validations/customer'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 
-const customerSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email address'),
-  phone: z.string().optional(),
-  company: z.string().optional(),
-  address: z.string().optional(),
-  taxId: z.string().optional(),
-})
-
 interface CustomerFormProps {
-  customer?: Customer
-  onSave: (data: CreateCustomerData) => Promise<void>
+  customer?: Customer | null
+  onSave: (data: CreateCustomerInput) => Promise<void>
   onCancel: () => void
 }
 
@@ -30,7 +20,7 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
   const [loading, setLoading] = useState(false)
   const isEditing = !!customer
 
-  const form = useForm<CreateCustomerData>({
+  const form = useForm<CreateCustomerInput>({
     resolver: zodResolver(customerSchema),
     defaultValues: {
       name: customer?.name || '',
@@ -42,7 +32,7 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
     },
   })
 
-  const handleSubmit = async (data: CreateCustomerData) => {
+  const handleSubmit = async (data: CreateCustomerInput) => {
     try {
       setLoading(true)
       await onSave(data)
