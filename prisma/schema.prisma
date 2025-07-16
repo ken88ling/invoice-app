@@ -1,0 +1,91 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id          String @id @default(cuid())
+  name        String
+  email       String @unique
+  phone       String?
+  company     String?
+  address     String?
+  taxId       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  invoices    Invoice[]
+}
+
+model Invoice {
+  id          String @id @default(cuid())
+  number      String @unique
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id])
+  
+  issueDate   DateTime @default(now())
+  dueDate     DateTime
+  status      InvoiceStatus @default(DRAFT)
+  
+  subtotal    Float
+  taxRate     Float @default(0)
+  taxAmount   Float
+  total       Float
+  
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  items       InvoiceItem[]
+  payments    Payment[]
+}
+
+model InvoiceItem {
+  id          String @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  
+  description String
+  quantity    Float
+  rate        Float
+  amount      Float
+  
+  createdAt   DateTime @default(now())
+}
+
+model Payment {
+  id          String @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id])
+  
+  amount      Float
+  paymentDate DateTime @default(now())
+  method      PaymentMethod @default(CASH)
+  reference   String?
+  notes       String?
+  
+  createdAt   DateTime @default(now())
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  CHECK
+  BANK_TRANSFER
+  CREDIT_CARD
+  OTHER
+}
