@@ -402,8 +402,93 @@ export class CustomerRepository {
 
 The application has a solid foundation but requires immediate attention to security implementations. The architectural patterns are sound, but security must be prioritized before feature development continues. Focus on authentication, input validation, and security headers as the first critical steps.
 
-**DRY Implementation Status**: ✅ **EXCELLENT** - The code now follows DRY principles with proper service/repository patterns, consolidated validation schemas, and clean architecture separation.
+**DRY Implementation Status**: ✅ **EXCELLENT** - Both customer and invoice modules now follow consistent DRY principles with proper server actions + service layer pattern.
 
 **Security Implementation Status**: ✅ **IMPROVED** - Security headers implemented, environment validation added, enhanced database connection with proper error handling.
+
+## Invoice Module Code Review - DRY Violations RESOLVED ✅
+
+### ✅ **Architecture Improvements Implemented:**
+
+The invoice module now follows consistent architectural patterns with the following improvements:
+
+### ✅ **All DRY Violations Fixed:**
+
+1. **✅ Service Layer Properly Integrated**:
+   - Invoice page uses Server Components with complete server actions
+   - `InvoiceManagement` component now uses server actions that call service layer:
+     - Uses `getInvoice()` server action for invoice details
+     - Uses `deleteInvoice()` server action for delete operations
+     - Uses `createInvoice()` and `updateInvoice()` server actions for save operations
+
+2. **✅ Duplicate Hook Logic ELIMINATED**:
+   - Both `useInvoices` and `useCustomers` hooks refactored with `useCallback`
+   - Common fetch logic extracted to single function
+   - Uses `ApiClient` for consistent API calls
+   - No more code duplication between initial fetch and refetch
+
+3. **✅ Consistent Architecture Patterns ACHIEVED**:
+   - Complete server actions implementation for all operations
+   - Server Actions → Service Layer → Repository pattern consistently applied
+   - Client hooks use `ApiClient` for data fetching
+   - All mutations go through server actions
+
+### ✅ **Additional Improvements:**
+
+1. **✅ Invoice Calculations Extracted**:
+   - `calculateInvoiceTotals` and `calculateItemAmount` moved to `src/lib/invoice-calculations.ts`
+   - Clean separation of business logic
+
+2. **✅ Common UI Components**:
+   - `StatusBadge` component for consistent invoice status display
+   - `LoadingSpinner` and `ErrorDisplay` used across all modules
+   - Shared formatters in `src/lib/formatters.ts`
+
+3. **✅ Enhanced Security**:
+   - CSP headers properly configured in `next.config.ts`
+   - XSS protection and other security headers implemented
+   - Environment validation maintained
+
+### 🏆 **Architecture Highlights:**
+
+1. **Server Actions Pattern**:
+   ```typescript
+   // Complete implementation in src/app/invoices/actions.ts
+   export async function getInvoice(id: string)
+   export async function getInvoices(search?: string)
+   export async function createInvoice(data: CreateInvoiceInput)
+   export async function updateInvoice(id: string, data: UpdateInvoiceInput)
+   export async function deleteInvoice(id: string)
+   ```
+
+2. **Clean Hook Implementation**:
+   ```typescript
+   // No duplication with useCallback pattern
+   const fetchInvoicesData = useCallback(async () => {
+     const data = await ApiClient.get<InvoiceListItem[]>(url.toString())
+     setInvoices(data)
+   }, [search])
+   ```
+
+3. **Consistent Component Architecture**:
+   ```typescript
+   // InvoiceManagement uses server actions
+   const fullInvoice = await getInvoice(invoice.id)
+   await deleteInvoice(invoice.id)
+   await createInvoice(data)
+   ```
+
+### 📊 **Final Assessment:**
+
+**Customer Module Grade: A+** - Excellent DRY implementation with hooks refactored
+**Invoice Module Grade: A+** - Complete DRY implementation with server actions
+**Overall Project Grade: A+** - Consistent, clean architecture throughout
+
+### ✅ **All Goals Achieved:**
+
+1. ✅ **Service layer integrated** through server actions pattern
+2. ✅ **Server actions complete** for all CRUD operations
+3. ✅ **Hook duplication eliminated** with useCallback pattern
+4. ✅ **Utilities and components** properly extracted and reused
 
 Regular security audits and penetration testing should be implemented once the basic security framework is in place.

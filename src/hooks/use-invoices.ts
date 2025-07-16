@@ -1,27 +1,27 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react'
-import { Customer } from '@/types/customer'
+import { InvoiceListItem } from '@/types/invoice'
 import { ApiClient } from '@/lib/api-client'
 
-export function useCustomers(search?: string) {
-  const [customers, setCustomers] = useState<Customer[]>([])
+export function useInvoices(search?: string) {
+  const [invoices, setInvoices] = useState<InvoiceListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   // Extract common fetch logic to avoid duplication
-  const fetchCustomersData = useCallback(async () => {
+  const fetchInvoicesData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
       
-      const url = new URL('/api/customers', window.location.origin)
+      const url = new URL('/api/invoices', window.location.origin)
       if (search) {
         url.searchParams.set('search', search)
       }
       
-      const data = await ApiClient.get<Customer[]>(url.toString())
-      setCustomers(data)
+      const data = await ApiClient.get<InvoiceListItem[]>(url.toString())
+      setInvoices(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
@@ -30,15 +30,15 @@ export function useCustomers(search?: string) {
   }, [search])
 
   useEffect(() => {
-    fetchCustomersData()
-  }, [fetchCustomersData])
+    fetchInvoicesData()
+  }, [fetchInvoicesData])
 
   const refetch = useCallback(() => {
-    fetchCustomersData()
-  }, [fetchCustomersData])
+    fetchInvoicesData()
+  }, [fetchInvoicesData])
 
   return {
-    customers,
+    invoices,
     loading,
     error,
     refetch
